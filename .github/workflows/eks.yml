@@ -76,7 +76,7 @@ jobs:
 #       - name: Cluster 
 #         run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.CLUSTER_NAME }}
 #       - name: Was-delpoy restart
-#         run: kubectl rollout restart deployment/was
+#         run: kubectl rollout restart deployment/was 
         
       - name: deploy to cluster
         uses: qazz92/kubectl@1.0.3
