@@ -19,21 +19,22 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-      - name: install jdk
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-          cache: 'gradle'
+      
+#       - name: install jdk
+#         uses: actions/setup-java@v3
+#         with:
+#           distribution: 'temurin'
+#           java-version: '11'
+#           cache: 'gradle'
           
-      - name: chmod gradle
-        run: chmod +x ./gradlew
+#       - name: chmod gradle
+#         run: chmod +x ./gradlew
         
-      - name: build
-        run: ./gradlew build --no-daemon
+#       - name: build
+#         run: ./gradlew build --no-daemon
         
-      - name: check build
-        run: ls ./build/libs
+#       - name: check build
+#         run: ls ./build/libs
         
       # docker setup
       - name: Set up Docker Buildx
@@ -57,10 +58,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           
-#       - name: Docker Push
-#         run: |
-#           docker push ${{ secrets.DOCKERHUB_USERNAME }}/m-dev --all-tags
-#           docker push ${{ secrets.DOCKERHUB_USERNAME }}/tomcat-backup --all-tags
+      - name: Docker Push
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/m-dev --all-tags
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/tomcat-backup --all-tags
           
 #       - name: Get GKE Credentials
 #         uses: google-github-actions/get-gke-credentials@v0.7.0
@@ -76,14 +77,31 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-
-
+          
+      - name: Trigger deploy
+        uses: Consensys/kubernetes-action@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        with:
+          args: apply deployment.yaml
+          
+      - name: kubectl test
+        run: kubectl get node
+          
 #       - name: Was-delpoy restart
 #         run: kubectl rollout restart deployment/was
       
 #       - name: filename change
 #         run: mv ./build/libs/*.war ./build/libs/$(date +%y-%m-%d-%H-%M).war
-            
+
+      - name: Upload S3
+        uses: shallwefootball/s3-upload-action@master
+        with:
+          aws_bucket: ${{ secrets.AWS_S3_BUCKET }}
+          source_dir: ./build/libs/
+          destination_dir: /
+
+
 #       - name: Cloud Storage Uploader
 #         uses: google-github-actions/upload-cloud-storage@v0.9.0
 #         with:
