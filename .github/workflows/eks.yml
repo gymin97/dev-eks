@@ -78,8 +78,8 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           args: "rollout restart deployment/was"
 
-      - name: filename change
-        run: mv ./build/libs/*.war ./build/libs/${{ env.DATE }}.war
+#       - name: filename change
+#         run: mv ./build/libs/*.war ./build/libs/${{ env.DATE }}.war
 
       - name: Copy a folder to s3
         uses: prewk/s3-cp-action@v2
@@ -87,5 +87,5 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           source: ./build/libs
-          dest: s3://${{ secrets.AWS_S3_BUCKET }}
+          dest: s3://${{ secrets.AWS_S3_BUCKET }}//${{ env.DATE }}
           flags: --recursive
