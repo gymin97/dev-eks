@@ -17,23 +17,23 @@ jobs:
     
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-#       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-#       - uses: actions/checkout@v3
-#       - name: install jdk
-#         uses: actions/setup-java@v3
-#         with:
-#           distribution: 'temurin'
-#           java-version: '11'
-#           cache: 'gradle'
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      - name: install jdk
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
           
-#       - name: chmod gradle
-#         run: chmod +x ./gradlew
+      - name: chmod gradle
+        run: chmod +x ./gradlew
         
-#       - name: build
-#         run: ./gradlew build --no-daemon
+      - name: build
+        run: ./gradlew build --no-daemon
         
-#       - name: check build
-#         run: ls ./build/libs
+      - name: check build
+        run: ls ./build/libs
         
       # docker setup
       - name: Set up Docker Buildx
@@ -75,7 +75,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-1
+          aws-region: ${{ secrets.AWS_REGION }}
 
 
 #       - name: Was-delpoy restart
