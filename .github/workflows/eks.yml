@@ -79,7 +79,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           
       - name: Cluster 
-        run: aws eks update-kubeconfig --${{ secrets.AWS_REGION }} --name gymin
+        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name gymin
           
       - name: kubectl test
         run: kubectl get pod
