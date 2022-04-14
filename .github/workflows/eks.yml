@@ -84,5 +84,7 @@ jobs:
         run: mv ./build/libs/*.war ./build/libs/$(date +%y-%m-%d-%H-%M).war
 
       - name: Upload S3
-        run: aws s3 cp ./build/libs/*.war ${{ secrets.AWS_S3_BUCKET }}
+#         run: aws s3 cp ./build/libs/*.war ${{ secrets.AWS_S3_BUCKET }}
+        run: aws s3 cp --region ${{ secrets.AWS_REGION }} --acl private ./build/libs/*.war s3://${{ secrets.AWS_S3_BUCKET }}
+
 
