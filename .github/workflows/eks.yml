@@ -35,13 +35,13 @@ jobs:
 #       - name: check build
 #         run: ls ./build/libs
         
-#       # docker setup
-#       - name: Set up Docker Buildx
-#         id: buildx
-#         uses: docker/setup-buildx-action@v1
+      # docker setup
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
 
-#       - name: docker ps
-#         run: docker ps
+      - name: docker ps
+        run: docker ps
 
 #       - name: copy war file
 #         run: |
@@ -51,11 +51,11 @@ jobs:
 #           -t ${{ secrets.DOCKERHUB_USERNAME }}/tomcat-backup:tomcat-$(date +%y-%m-%d-%H-%M) ./Dockerfile
 #           docker images
 
-#       - name: Login to Docker Hub
-#         uses: docker/login-action@v1
-#         with:
-#           username: ${{ secrets.DOCKERHUB_USERNAME }}
-#           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
           
 #       - name: Docker Push
 #         run: |
@@ -69,7 +69,6 @@ jobs:
 #           location: us-central1-c
 #           project_id: annular-magnet-343008
 #           credentials: ${{ secrets.GKE_SERVICE_KEY }}
-#           context_name: gcloud container clusters get-credentials gymin --zone us-central1-c --project annular-magnet-343008
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
