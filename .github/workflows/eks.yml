@@ -38,14 +38,10 @@ jobs:
         
       - name: check build
         run: ls ./build/libs
-        
-      # docker setup
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
-
-      - name: docker ps
-        run: docker ps
 
       - name: copy war file
         run: |
@@ -63,8 +59,8 @@ jobs:
           
       - name: Docker Push
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/m-dev --all-tags
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/tomcat-backup --all-tags
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }} --all-tags
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO_BACKUP }} --all-tags
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -72,11 +68,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-         
-#       - name: Cluster 
-#         run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.CLUSTER_NAME }}
-#       - name: Was-delpoy restart
-#         run: kubectl rollout restart deployment/was 
         
       - name: deploy to cluster
         uses: qazz92/kubectl@1.0.3
@@ -87,12 +78,8 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           args: "rollout restart deployment/was"
 
-        
       - name: filename change
         run: mv ./build/libs/*.war ./build/libs/${{ env.DATE }}.war
-
-#       - name: Upload S3
-#         run: aws s3 cp --region ${{ secrets.AWS_REGION }} ./build/libs/*.war s3://${{ secrets.AWS_S3_BUCKET }}
 
       - name: Copy a folder to s3
         uses: prewk/s3-cp-action@v2
@@ -102,4 +89,3 @@ jobs:
           source: ./build/libs
           dest: s3://${{ secrets.AWS_S3_BUCKET }}
           flags: --recursive
-
