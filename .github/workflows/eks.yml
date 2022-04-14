@@ -20,6 +20,9 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
       
+      - name: Set env
+        run: echo "DATE=$(date +%y-%m-%d-%H)" >> $GITHUB_ENV
+      
       - name: install jdk
         uses: actions/setup-java@v3
         with:
@@ -49,7 +52,7 @@ jobs:
           cp ./build/libs/*.war ./Dockerfile
           docker build \
           -t ${{ secrets.DOCKERHUB_USERNAME }}/m-dev:tomcat-latest \
-          -t ${{ secrets.DOCKERHUB_USERNAME }}/tomcat-backup:tomcat-$(date +%y-%m-%d-%H-%M) ./Dockerfile
+          -t ${{ secrets.DOCKERHUB_USERNAME }}/tomcat-backup:tomcat-${{ env.DATE }} ./Dockerfile
           docker images
 
       - name: Login to Docker Hub
@@ -62,7 +65,6 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/m-dev --all-tags
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/tomcat-backup --all-tags
-          
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -70,18 +72,44 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-          
-      - name: Cluster 
-        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.CLUSTER_NAME }}
-          
-      - name: Was-delpoy restart
-        run: kubectl rollout restart deployment/was
-      
+         
+#       - name: Cluster 
+#         run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.CLUSTER_NAME }}
+#       - name: Was-delpoy restart
+#         run: kubectl rollout restart deployment/was
+        
+      - name: deploy to cluster
+        uses: qazz92/kubectl@1.0.3
+        env:
+          kube_confg_data: ${{ secrets.KUBE_CONFIG_DATA }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+        with:
+          args: set image --record deployment/was container=${{ secrets.DOCKERHUB_USERNAME }}/m-dev:tomcat-latest
+            
+      - name: verify deployment
+        uses: qazz92/kubectl@1.0.3
+        env:
+          kube_confg_data: ${{ secrets.KUBE_CONFIG_DATA }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+        with:
+          args: '"rollout status deployment/was"'
+        
       - name: filename change
-        run: mv ./build/libs/*.war ./build/libs/$(date +%y-%m-%d-%H-%M).war
+        run: mv ./build/libs/*.war ./build/libs/${{ env.DATE }}.war
 
-      - name: Upload S3
-#         run: aws s3 cp ./build/libs/*.war ${{ secrets.AWS_S3_BUCKET }}
-        run: aws s3 cp --region ${{ secrets.AWS_REGION }} --acl private ./build/libs/*.war s3://${{ secrets.AWS_S3_BUCKET }}
+#       - name: Upload S3
+#         run: aws s3 cp --region ${{ secrets.AWS_REGION }} ./build/libs/*.war s3://${{ secrets.AWS_S3_BUCKET }}
 
+      - name: Copy a folder to s3
+        uses: prewk/s3-cp-action@v2
+        with:
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          source: ./build/libs/*.war
+          dest: s3://${{ secrets.AWS_S3_BUCKET }}
+          flags: --recursive
 
